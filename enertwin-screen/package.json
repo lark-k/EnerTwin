@@ -1,0 +1,26 @@
+{
+  "name": "enertwin-screen",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "echarts": "^5.6.0",
+    "gsap": "^3.13.0",
+    "lucide-vue-next": "^0.468.0",
+    "pinia": "^2.3.1",
+    "three": "^0.171.0",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@types/three": "^0.171.0",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.6",
+    "vue-tsc": "^2.2.0"
+  }
+}

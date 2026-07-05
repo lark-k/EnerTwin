@@ -1,0 +1,67 @@
+services:
+  enertwin-screen:
+    build:
+      context: ./enertwin-screen
+    container_name: enertwin-screen
+    ports:
+      - "8080:80"
+    depends_on:
+      - enertwin-server
+
+  enertwin-server:
+    image: eclipse-temurin:21-jre
+    container_name: enertwin-server
+    profiles: ["backend-placeholder"]
+    working_dir: /app
+    command: ["java", "-jar", "enertwin-server.jar"]
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/enertwin
+      SPRING_DATA_REDIS_HOST: redis
+      MQTT_BROKER_URL: tcp://emqx:1883
+    depends_on:
+      - postgres
+      - redis
+      - emqx
+
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: enertwin-postgres
+    environment:
+      POSTGRES_DB: enertwin
+      POSTGRES_USER: enertwin
+      POSTGRES_PASSWORD: enertwin_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - enertwin-postgres:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+
+  redis:
+    image: redis:7-alpine
+    container_name: enertwin-redis
+    ports:
+      - "6379:6379"
+
+  emqx:
+    image: emqx/emqx:5.8
+    container_name: enertwin-emqx
+    ports:
+      - "1883:1883"
+      - "18083:18083"
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: enertwin-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: enertwin
+      MINIO_ROOT_PASSWORD: enertwin_minio_password
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - enertwin-minio:/data
+
+volumes:
+  enertwin-postgres:
+  enertwin-minio:

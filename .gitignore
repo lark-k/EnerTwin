@@ -1,11 +1,38 @@
+# 系统
+.DS_Store
+Thumbs.db
+# IDE
+.idea/
+.vscode/
+*.swp
+# 日志
+*.log
+logs/
+# Java后端
 target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
-dependency-reduced-pom.xml
-buildNumber.properties
-.mvn/timing.properties
-# https://github.com/takari/maven-wrapper#usage-without-binary-jar
-.mvn/wrapper/maven-wrapper.jar
+build/
+.gradle/
+.m2/
+*.class
+# Vue前端
+node_modules/
+dist/
+.vite/
+.nuxt/
+# 环境敏感
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+# 临时缓存
+tmp/
+.cache/
+qa-artifacts/
+__pycache__/
+.pytest_cache/
+quant-engine/.venv/
+quant-engine/.cache/
+quant-engine/models/artifacts/
+# codegraph
+.codegraph
