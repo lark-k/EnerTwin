@@ -37,3 +37,5 @@ User supplied three dashboard references showing a large central campus / aerial
 
 - A real GLB campus model or real aerial orthophoto texture would make the prototype closer to a production digital twin.
 - Chunk-size warning remains because Three.js and ECharts are bundled together; production should split chunks.
+
+- 2026-07-06 showroom upgrade: added holographic campus stage, animated building pulse shells, facility halos, enhanced additive energy-flow tubes/particles, renderer tone mapping, and scene HUD sweep overlay while preserving existing labels, panels, drag controls, and mode switching.

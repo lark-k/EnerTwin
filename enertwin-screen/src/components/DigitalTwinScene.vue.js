@@ -82,6 +82,8 @@ function initScene(host) {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = props.nightMode ? 1.22 : 1.05;
     renderer.domElement.className = 'twin-canvas';
     renderer.domElement.addEventListener('click', handleSceneClick);
     host.appendChild(renderer.domElement);
@@ -110,6 +112,7 @@ function initScene(host) {
     buildCampusCore();
     buildSurroundings();
     buildEnergyFlows();
+    buildShowroomStage();
     applyTheme();
     resizeObserver = new ResizeObserver(() => {
         if (!renderer || !labelRenderer || !sceneRef.value)
@@ -218,6 +221,98 @@ function createSkyTexture() {
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
     return texture;
+}
+function buildShowroomStage() {
+    const stage = new THREE.Group();
+    stage.name = 'showroom-stage';
+    scene.add(stage);
+    const campusGlow = new THREE.Mesh(new THREE.CircleGeometry(28, 128), new THREE.MeshBasicMaterial({
+        color: 0x1fcfff,
+        transparent: true,
+        opacity: props.nightMode ? 0.1 : 0.06,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+    }));
+    campusGlow.rotation.x = -Math.PI / 2;
+    campusGlow.position.y = 0.07;
+    campusGlow.scale.set(1.35, 0.72, 1);
+    stage.add(campusGlow);
+    const ringSpecs = [
+        { rx: 29, rz: 18, y: 0.22, color: 0x28e6ff, speed: 0.025, opacity: 0.26 },
+        { rx: 19, rz: 11.5, y: 0.28, color: 0x72ffb0, speed: -0.035, opacity: 0.18 },
+        { rx: 11.5, rz: 7.2, y: 0.34, color: 0x8a6cff, speed: 0.045, opacity: 0.2 },
+    ];
+    ringSpecs.forEach((spec, index) => {
+        const material = new THREE.MeshBasicMaterial({
+            color: spec.color,
+            transparent: true,
+            opacity: spec.opacity,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+        });
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(1, 0.018 + index * 0.006, 8, 192), material);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.y = spec.y;
+        ring.scale.set(spec.rx, spec.rz, 1);
+        stage.add(ring);
+        updaters.push((elapsed) => {
+            ring.rotation.z = elapsed * spec.speed;
+            material.opacity = spec.opacity * (0.72 + Math.sin(elapsed * 1.35 + index) * 0.18);
+        });
+    });
+    const scanMaterial = new THREE.MeshBasicMaterial({
+        color: 0x7ce5ff,
+        transparent: true,
+        opacity: 0.16,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+    });
+    const scanner = new THREE.Mesh(new THREE.PlaneGeometry(52, 0.52), scanMaterial);
+    scanner.rotation.x = -Math.PI / 2;
+    scanner.position.y = 0.38;
+    stage.add(scanner);
+    const dataMaterial = new THREE.MeshBasicMaterial({
+        color: 0x7ce5ff,
+        transparent: true,
+        opacity: 0.18,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+    });
+    const dataColumns = [];
+    for (let i = 0; i < 42; i += 1) {
+        const h = 0.8 + (i % 7) * 0.34;
+        const column = new THREE.Mesh(new THREE.BoxGeometry(0.025, h, 0.025), dataMaterial);
+        const x = -25 + ((i * 7.1) % 50);
+        const z = -15 + ((i * 5.4) % 30);
+        column.position.set(x, h / 2 + 0.2, z);
+        dataColumns.push(column);
+        stage.add(column);
+    }
+    const coreMaterial = new THREE.MeshBasicMaterial({
+        color: 0x7effd2,
+        transparent: true,
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+    });
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.18, 24, 16), coreMaterial);
+    core.position.set(0.8, 7.6, -0.6);
+    stage.add(core);
+    const coreRing = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.018, 8, 96), coreMaterial.clone());
+    coreRing.position.copy(core.position);
+    coreRing.rotation.x = Math.PI / 2.5;
+    stage.add(coreRing);
+    updaters.push((elapsed) => {
+        scanner.position.z = -16 + ((elapsed * 3.6) % 32);
+        scanMaterial.opacity = 0.08 + Math.sin(elapsed * 2.2) * 0.045;
+        dataColumns.forEach((column, index) => {
+            const pulse = 0.72 + Math.sin(elapsed * 2.1 + index * 0.53) * 0.28;
+            column.scale.y = Math.max(0.18, pulse);
+        });
+        core.scale.setScalar(0.9 + Math.sin(elapsed * 2.6) * 0.18);
+        coreRing.rotation.z = elapsed * 0.62;
+    });
 }
 function buildAerialGround() {
     buildOuterWorld();
@@ -799,7 +894,34 @@ function createBuilding(item) {
     addFacadeLightStrips(group, item.w, item.d, item.h);
     addRoofNeonFrame(group, item.w, item.d, item.h + 0.48);
     addRoofEquipment(group, item.w, item.d, item.h);
+    addBuildingPulseShell(group, item.w, item.d, item.h);
     return group;
+}
+function addBuildingPulseShell(group, width, depth, height) {
+    const geometry = new THREE.EdgesGeometry(new THREE.BoxGeometry(width + 0.34, height + 0.34, depth + 0.34));
+    const material = new THREE.LineBasicMaterial({
+        color: 0x7ce5ff,
+        transparent: true,
+        opacity: props.nightMode ? 0.5 : 0.24,
+        blending: THREE.AdditiveBlending,
+    });
+    const shell = new THREE.LineSegments(geometry, material);
+    shell.position.y = height / 2 + 0.28;
+    group.add(shell);
+    const crownMaterial = new THREE.MeshBasicMaterial({
+        color: 0x65b8ff,
+        transparent: true,
+        opacity: props.nightMode ? 0.34 : 0.18,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+    });
+    const crown = new THREE.Mesh(new THREE.BoxGeometry(width + 0.55, 0.026, depth + 0.55), crownMaterial);
+    crown.position.y = height + 0.62;
+    group.add(crown);
+    updaters.push((elapsed) => {
+        material.opacity = (props.nightMode ? 0.42 : 0.2) + Math.sin(elapsed * 1.8 + width) * 0.12;
+        crownMaterial.opacity = (props.nightMode ? 0.22 : 0.12) + Math.sin(elapsed * 2.2 + depth) * 0.08;
+    });
 }
 function addWindowGrid(group, width, depth, height) {
     const material = new THREE.MeshStandardMaterial({
@@ -984,6 +1106,7 @@ function buildStorageStation() {
     label.position.set(-15.5, 2.7, -7.8);
     scene.add(label);
     scene.add(group);
+    addFacilityHalo(-15.5, -7.8, 4.8, 2.55, 0x39a7ff, 'storage');
 }
 function buildChargingStation() {
     const group = new THREE.Group();
@@ -1018,6 +1141,7 @@ function buildChargingStation() {
     label.position.set(14.6, 3.1, -8.5);
     scene.add(label);
     scene.add(group);
+    addFacilityHalo(14.6, -8.5, 5.1, 3.25, 0x8a6cff, 'charging');
 }
 function buildGridStation() {
     const group = new THREE.Group();
@@ -1042,6 +1166,43 @@ function buildGridStation() {
     scene.add(label);
     scene.add(group);
     emphasisObjects.grid.push(group);
+    addFacilityHalo(18.4, -13.2, 4.3, 2.55, 0x00e5ff, 'grid');
+}
+function addFacilityHalo(x, z, radiusX, radiusZ, color, kind) {
+    const group = new THREE.Group();
+    group.position.set(x, 0.34, z);
+    const material = new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0.34,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+    });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1, 0.026, 8, 160), material);
+    ring.rotation.x = Math.PI / 2;
+    ring.scale.set(radiusX, radiusZ, 1);
+    group.add(ring);
+    const diskMaterial = new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0.07,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+    });
+    const disk = new THREE.Mesh(new THREE.CircleGeometry(1, 96), diskMaterial);
+    disk.rotation.x = -Math.PI / 2;
+    disk.scale.set(radiusX * 0.92, radiusZ * 0.92, 1);
+    group.add(disk);
+    scene.add(group);
+    emphasisObjects[kind]?.push(group);
+    updaters.push((elapsed) => {
+        ring.rotation.z = elapsed * 0.35;
+        const pulse = 0.72 + Math.sin(elapsed * 2.2 + radiusX) * 0.22;
+        ring.scale.set(radiusX * pulse, radiusZ * pulse, 1);
+        material.opacity = 0.22 + Math.sin(elapsed * 2.6 + radiusZ) * 0.1;
+        diskMaterial.opacity = 0.04 + Math.sin(elapsed * 1.8 + radiusX) * 0.025;
+    });
 }
 function buildParkingLot(x, z, rotation = 0) {
     const group = new THREE.Group();
@@ -1547,15 +1708,37 @@ function buildEnergyFlows() {
 }
 function addFlow(points, color, kind) {
     const curve = new THREE.CatmullRomCurve3(points);
-    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(120)), new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.52 }));
+    const lineMaterial = new THREE.LineBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0.58,
+        blending: THREE.AdditiveBlending,
+    });
+    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(120)), lineMaterial);
     scene.add(line);
-    for (let i = 0; i < 3; i += 1) {
-        const particle = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.95 }));
+    emphasisObjects[kind]?.push(line);
+    const tubeMaterial = new THREE.MeshBasicMaterial({
+        color,
+        transparent: true,
+        opacity: 0.14,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+    });
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 120, 0.035, 8, false), tubeMaterial);
+    scene.add(tube);
+    emphasisObjects[kind]?.push(tube);
+    for (let i = 0; i < 5; i += 1) {
+        const particle = new THREE.Mesh(new THREE.SphereGeometry(i % 2 === 0 ? 0.13 : 0.085, 16, 16), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending }));
         scene.add(particle);
+        emphasisObjects[kind]?.push(particle);
         updaters.push((elapsed) => {
             const speed = kind === 'charging' ? 0.23 : 0.18;
-            const offset = i / 3 + (kind === 'pv' ? 0 : kind === 'storage' ? 0.12 : kind === 'grid' ? 0.24 : 0.36);
-            particle.position.copy(curve.getPoint((elapsed * speed + offset) % 1));
+            const offset = i / 5 + (kind === 'pv' ? 0 : kind === 'storage' ? 0.12 : kind === 'grid' ? 0.24 : 0.36);
+            const progress = (elapsed * speed + offset) % 1;
+            particle.position.copy(curve.getPoint(progress));
+            particle.scale.setScalar(0.82 + Math.sin(elapsed * 5.6 + i) * 0.22);
+            lineMaterial.opacity = 0.4 + Math.sin(elapsed * 1.8) * 0.12;
+            tubeMaterial.opacity = 0.1 + Math.sin(elapsed * 2 + i) * 0.035;
         });
     }
 }
@@ -1617,6 +1800,8 @@ function applyTheme() {
         return;
     scene.background = new THREE.Color(props.nightMode ? 0x030a18 : 0xa7d6ff);
     scene.fog = new THREE.FogExp2(props.nightMode ? 0x061426 : 0xb6d8f0, props.nightMode ? 0.009 : 0.008);
+    if (renderer)
+        renderer.toneMappingExposure = props.nightMode ? 1.22 : 1.05;
     if (groundMaterial) {
         groundMaterial.emissive.set(props.nightMode ? 0x061426 : 0x000000);
         groundMaterial.emissiveIntensity = props.nightMode ? 0.1 : 0;
@@ -1626,6 +1811,8 @@ function applyTheme() {
     }
 }
 function applySceneMode() {
+    if (sceneRef.value)
+        sceneRef.value.dataset.mode = props.mode;
     Object.entries(emphasisObjects).forEach(([kind, objects]) => {
         objects.forEach((object) => {
             object.traverse((child) => {
