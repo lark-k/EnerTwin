@@ -33,7 +33,7 @@ export const useScreenStore = defineStore('screen', () => {
         timer = window.setInterval(() => {
             metrics.value = nextMetrics(metrics.value);
             trend.value = createTrendData();
-        }, 2600);
+        }, 9000);
     }
     function stopMockStream() {
         if (timer) {

@@ -1,41 +1,69 @@
-# EnerTwin Screen Design QA
+# EnerTwin Energy Flow Design QA — Iteration 4
+
+## Comparison target
+
+- Source visual truth:
+  - Full dashboard: `C:/Users/lark-k/AppData/Local/Temp/codex-clipboard-d4340414-25ae-4e77-9e90-2301c76bc0c0.png`
+  - Focused particle-flow defect: `C:/Users/lark-k/AppData/Local/Temp/codex-clipboard-fd6562dd-1524-4a4d-9288-e3e3d387fcd3.png`
+- Browser-rendered implementation: `artifacts/design-qa/energy-hub-final.png`
+- Viewport: 1280 × 720 browser capture; fixed dashboard canvas proportionally fitted
+- State: night mode, overview; storage mode additionally interaction-tested
+- Full-view comparison: `artifacts/design-qa/energy-flow-full-comparison.png`
+- Focused flow comparison: `artifacts/design-qa/energy-flow-focus-comparison.png`
+
+## Findings
+
+- No actionable P0, P1, or P2 findings remain.
+- [P3] At the exact dispatch-hub center, closely spaced additive particles can briefly become pale cyan. The surrounding green, violet, blue, cyan, and amber routes remain independently recognizable, so this does not block the requested category distinction.
+
+## Required fidelity surfaces
+
+- Fonts and typography: the dashboard's existing Microsoft YaHei/Bahnschrift hierarchy, weights, line heights, and numeric alignment remain unchanged. The new bus label uses the established scene-label typography and remains readable without colliding with the A1 label.
+- Spacing and layout rhythm: left/right panels, charts, top navigation, and the fixed dashboard shell are unchanged. Routes now occupy a raised aerial layer above roofs, with clear terminal drops and a central courtyard hub.
+- Colors and visual tokens: PV is saturated green, storage is violet, grid input is electric blue, building distribution is cyan, and charging is amber. White mixing was reduced in particle heads, trail layers, and the hot core.
+- Image quality and asset fidelity: existing campus GLB and skyline/ground textures are preserved. No placeholder, handcrafted SVG, or substitute image asset was introduced.
+- Copy and content: the new `园区能源母线 / 多源汇聚 · 智能分配` label explains the topology without changing existing device, metric, or alarm copy.
+- Interaction states: overview and storage tabs were browser-tested; the active mode changed correctly and returned to overview.
+- Accessibility: the hub label is non-interactive and does not intercept pointer input; existing scene labels remain semantic buttons.
+
+## Comparison history
+
+1. Initial source findings:
+   - [P1] Particles followed low roof-level paths and visually merged with building emissive edges.
+   - [P1] Bright white heads washed out the intended energy categories.
+   - [P2] Chain-like point-to-point links did not clearly communicate generation, convergence, and allocation.
+2. First implementation fixes:
+   - Raised every route into an aerial corridor with source/destination terminal drops.
+   - Replaced equal sphere dots with instanced capsule packets, hot heads, tapered trails, soft glow, and relay rings.
+   - Added power-responsive speed and intensity while keeping instanced rendering.
+3. Topology revision:
+   - Routed PV, storage, and grid energy into one central dispatch hub.
+   - Distributed cyan load energy to key buildings and amber energy to charging.
+   - Added five concentric category-colored hub rings and a compact explanatory label.
+4. Final QA fixes:
+   - Removed duplicated terminal stems and relay rings at the shared hub to prevent overexposure.
+   - Raised the storage route and reduced white color mixing for stronger category recognition.
+   - Fixed a Catmull-Rom progress-boundary runtime error by using clamped curve sampling.
+5. Post-fix evidence:
+   - Full dashboard comparison: `artifacts/design-qa/energy-flow-full-comparison.png`
+   - Focused route comparison: `artifacts/design-qa/energy-flow-focus-comparison.png`
+   - Final browser capture: `artifacts/design-qa/energy-hub-final.png`
+
+## Engineering verification
+
+- `npm.cmd run build`: passed; 2168 modules transformed.
+- Browser runtime: no console errors after the final reload.
+- Animation: consecutive browser screenshots differed, confirming active particle motion.
+- Primary interaction: storage mode activated successfully and overview was restored.
+- Existing note: Vite continues to report the pre-existing large bundle warning for the combined Three.js/ECharts chunk; runtime behavior is unaffected.
+
+## Implementation checklist
+
+- [x] Raise routes above the roofline.
+- [x] Make energy categories visually distinct.
+- [x] Converge source energy at one dispatch hub.
+- [x] Redistribute energy to buildings and charging.
+- [x] Keep animation performant with instanced meshes.
+- [x] Verify build, animation, mode switching, and browser console.
 
 final result: passed
-
-## Reference
-
-User supplied three dashboard references showing a large central campus / aerial environment, translucent edge panels, map labels, and mouse-draggable environmental viewing.
-
-## Checked
-
-- The bottom dashboard area no longer occupies a tall full-width block. It is now a short center dock with two compact charts.
-- The 3D scene now renders as a full-screen background layer behind the UI instead of being bounded to a small middle grid cell.
-- OrbitControls are bound directly to the WebGL canvas, so mouse drag and zoom work.
-- The scene has a richer campus environment: map-like ground, roads, water, sports field, surrounding skyline blocks, trees, parking area, charging canopy, vehicles, storage containers, detailed building windows, rooftop equipment, and solar panel arrays.
-- The latest iteration removes the aerial photo texture and uses a fully geometric 3D campus base: terrain plates, roads, plazas, lawns, water, sports field, parking, trees, and surrounding skyline masses.
-- The scene now fills the black surroundings with a procedural sky dome, horizon glow, outer districts, perimeter roads, distant skyline blocks, and an expanded world plane.
-- The water area is modeled as an independent lake basin with shoreline glow and ripple details; tree placement is filtered against the lake ellipse so trees no longer appear in the water.
-- Building base plates have been changed from bright slab-like pads to darker technology paving with cyan edge lines and subtle grid seams.
-- Rooftop PV has been rebuilt as tilted deep-blue glass panels with metal rails, glowing frames, and cell lines instead of flat green block tiles.
-- Trees are filtered away from lake and main road footprints, so they no longer appear inside water or on carriageways.
-- The former red decorative ground rings were removed to avoid confusion with real alarm markers.
-- The park now has a fenced perimeter and an entrance gate, making the boundary between the internal energy campus and the external city environment clearer.
-- The external city context has been expanded with multi-lane roads, lane markings, cyan road edges, animated traffic, city district slabs, and layered surrounding buildings.
-- The latest visual pass shifts the scene toward the supplied neon campus reference: dark-blue campus buildings, bright vertical window strips, glowing rooftop outlines, white-blue building placards, denser tree groves, skywalks between buildings, and a darker low-poly city carpet beyond the park fence.
-- The latest site-plan pass connects skywalks directly to building facades with endpoint decks and supports, reorganizes lawns into larger reference-like green zones, changes trees into regular row/grove planting with fuller multi-sphere crowns, adds a styled basketball court and white-grid parking lots, redesigns campus roads with crosswalks and clearer lane hierarchy, and pulls external city blocks/roads closer to the fence.
-- The latest boundary pass shrinks the campus fence to the core park redline, moves and shrinks the lake to the rear-right landscape area so it no longer overlaps the basketball court, expands road-avoidance checks for trees, and keeps nearby city blocks outside the fence.
-- The latest compact landscape pass reduces the campus base and fence again, leaves only one internal grass plate with a contained tree grove, removes the former scattered grass/tree groups, and keeps additional trees as sparse roadside rows outside active carriageways.
-- The latest layout pass moves the compact grass/water/basketball pocket into the E/B/D-side landscape zone, shortens the conflicting internal branch road, moves the grid access station inward from the fence/gate edge, updates grid flow/node coordinates, and strengthens campus road styling with brighter lane lines, curb glow, crosswalks, and branch-road hierarchy.
-- The latest water-placement correction moves the pond off the grass and basketball court onto the adjacent hardscape blank area, with lake bounds updated so future tree avoidance uses the new pond location.
-- The scene adds stronger showroom styling: building edge glow, road light strips, pulsing street lights, PV panel glints, and a campus boundary glow line.
-- The scene keeps energy-specific digital twin elements: PV, storage, charging, grid station, dynamic flow particles, labels, and alarm beacon.
-- 1920x1080, 2560x1440, and 3840x2160 screenshots render nonblank central canvas.
-- Automated 1920x1080 mouse drag check reports `dragChanged: true`.
-- Automated alarm marker click check reports `alarmClickOpens: true`.
-
-## Remaining Polish
-
-- A real GLB campus model or real aerial orthophoto texture would make the prototype closer to a production digital twin.
-- Chunk-size warning remains because Three.js and ECharts are bundled together; production should split chunks.
-
-- 2026-07-06 showroom upgrade: added holographic campus stage, animated building pulse shells, facility halos, enhanced additive energy-flow tubes/particles, renderer tone mapping, and scene HUD sweep overlay while preserving existing labels, panels, drag controls, and mode switching.

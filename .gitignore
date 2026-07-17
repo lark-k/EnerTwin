@@ -28,6 +28,7 @@ dist/
 # 临时缓存
 tmp/
 .cache/
+artifacts/
 qa-artifacts/
 __pycache__/
 .pytest_cache/

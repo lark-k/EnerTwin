@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EnerTwin Iteration 3 QA</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #020611; color: #dff8ff; font-family: Arial, sans-serif; }
+      main { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 7px; width: 100%; height: 100%; padding: 7px; }
+      figure { display: grid; grid-template-rows: 25px 1fr; min-width: 0; min-height: 0; margin: 0; border: 1px solid #15557b; background: #020814; }
+      figcaption { display: flex; align-items: center; padding: 0 9px; border-bottom: 1px solid #15557b; color: #8cecff; font-size: 12px; }
+      img { width: 100%; height: 100%; display: block; object-fit: contain; background: #01040b; }
+      .sources { display: grid; grid-template-columns: 1fr 1.75fr; min-height: 0; }
+      .sources img { object-fit: contain; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <figure><figcaption>问题证据 · 切换视角后粒子不可读</figcaption><img src="/assets/qa-i3-source-angle.png" alt="Source angle issue" /></figure>
+      <figure><figcaption>修复证据 · B座近景仍有连续粒子且不穿楼顶</figcaption><img src="/assets/qa-i3-angle.png" alt="Fixed angle state" /></figure>
+      <figure><figcaption>问题证据 · 充电站粘连与电网位置</figcaption><div class="sources"><img src="/assets/qa-i3-source-charge.png" alt="Charge overlap" /><img src="/assets/qa-i3-source-grid.png" alt="Grid target" /></div></figure>
+      <figure><figcaption>修复证据 · 设施分离、线路收敛后的总览</figcaption><img src="/assets/qa-i3-overview.png" alt="Fixed overview" /></figure>
+    </main>
+  </body>
+</html>
